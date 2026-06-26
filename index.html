@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      #box {
+        position: absolute;
+        top: 490px;
+        left: 0;
+        width: 100px;
+        height: 100px;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Minimal reproduction: GSAP/DOM motion renders at 30fps even with `--fps 60`.
+
+      #box moves LINEARLY (ease: "none") across the 1920px width over 4s (240 frames @60fps).
+        - Expected at 60fps: the box advances ~7.6px EVERY frame -> 240 distinct frames.
+        - Actual at `--fps 60`: the box advances only every OTHER frame (~15.2px every 2nd
+          frame), and the in-between frame is an exact duplicate -> 30fps motion in a 60fps
+          container. (`--fps 30` renders perfectly — see README.)
+
+      `left` (a layout property) is animated rather than `x`/transform purely so the cadence
+      reads cleanly in per-frame analysis; the bug affects all properties and all eases.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="4"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="box"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.to("#box", { left: 1820, duration: 4, ease: "none" }, 0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
